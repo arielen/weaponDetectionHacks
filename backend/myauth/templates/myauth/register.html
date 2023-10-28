@@ -6,11 +6,20 @@
 {% block body %}
   <div class="container d-flex justify-content-center align-items-center mt-5">
     <div class="card p-4 shadow" style="width: 400px;">
-      <h2 class="mb-4">{% translate "Register" %}</h2>
+      <h2 class="mb-4">{% translate "Регистрация" %}</h2>
+      {% if form.errors %}
+        <div class="alert alert-danger">
+          <ul>
+            {% for field in form %}
+              {% for error in field.errors %}<li>{{ error|escape }}</li>{% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
       <form method="post">
         {% csrf_token %}
         <div class="mb-3">
-          <label for="username" class="form-label">{% translate "Username" %}</label>
+          <label for="username" class="form-label">{% translate "Имя пользователя" %}</label>
           <input type="text"
                  class="form-control"
                  id="username"
@@ -18,7 +27,7 @@
                  required>
         </div>
         <div class="mb-3">
-          <label for="password1" class="form-label">{% translate "Password" %}</label>
+          <label for="password1" class="form-label">{% translate "Пароль" %}</label>
           <input type="password"
                  class="form-control"
                  id="password1"
@@ -26,7 +35,7 @@
                  required>
         </div>
         <div class="mb-3">
-          <label for="password2" class="form-label">{% translate "Confirm Password" %}</label>
+          <label for="password2" class="form-label">{% translate "Повторите пароль" %}</label>
           <input type="password"
                  class="form-control"
                  id="password2"
@@ -34,11 +43,11 @@
                  required>
         </div>
         <div class="d-grid">
-          <button type="submit" class="btn btn-primary">{% translate "Register_button" %}</button>
+          <button type="submit" class="btn btn-primary">{% translate "Зарегистрироваться" %}</button>
         </div>
       </form>
       <div class="text-center mt-3">
-        <a href="{% url 'myauth:login' %}" class="text-decoration-none">{% translate "Already have an account? Login here" %}</a>
+        <a href="{% url 'myauth:login' %}" class="text-decoration-none">{% translate "Уже есть аккаунт? Войдите" %}</a>
       </div>
     </div>
   </div>

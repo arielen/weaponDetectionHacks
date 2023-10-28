@@ -1,37 +1,44 @@
 {% extends 'base.html' %}
 {% load i18n %}
 {% block title %}
-  {% translate "Login" %}
+  {% translate "Вход" %}
 {% endblock title %}
 {% block body %}
   <div class="container d-flex justify-content-center align-items-center mt-5">
     <div class="card p-4 shadow" style="width: 400px;">
-      <h2 class="mb-4">{% translate "Login" %}</h2>
-      <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="username" class="form-label">{% translate "Username" %}</label>
-          <input type="text"
-                 class="form-control"
-                 id="username"
-                 name="username"
-                 required>
-        </div>
-        <div class="mb-3">
-          <label for="password" class="form-label">{% translate "Password" %}</label>
-          <input type="password"
-                 class="form-control"
-                 id="password"
-                 name="password"
-                 required>
-        </div>
-        <div class="d-grid">
-          <button type="submit" class="btn btn-primary">{% translate "Login" %}</button>
-        </div>
-      </form>
-      <div class="text-center mt-3">
-        <a href="{% url 'myauth:register' %}" class="text-decoration-none">{% translate "Don't have an account? Register here" %}</a>
+      <h2 class="mb-4">{% translate "Вход" %}</h2>
+      {% if form.errors %}
+        <div class="alert alert-danger mt-3">
+          <ul>
+            <li>{{ form.errors }}</li>
+        </ul>
       </div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="username" class="form-label">{% translate "Имя пользователя" %}</label>
+        <input type="text"
+               class="form-control"
+               id="username"
+               name="username"
+               required>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">{% translate "Пароль" %}</label>
+        <input type="password"
+               class="form-control"
+               id="password"
+               name="password"
+               required>
+      </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary">{% translate "Войти" %}</button>
+      </div>
+    </form>
+    <div class="text-center mt-3">
+      <a href="{% url 'myauth:register' %}" class="text-decoration-none">{% translate "Нет аккаунта? Зарегистрируйтесь сейчас" %}</a>
     </div>
   </div>
+</div>
 {% endblock body %}

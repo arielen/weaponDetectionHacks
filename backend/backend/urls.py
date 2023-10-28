@@ -30,12 +30,12 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name='api-schema'),
         name='swagger-ui'
     ),
+    path('auth/', include('myauth.urls')),
+    path('', include('weapondetectapp.urls')),
+    path('admin/', admin.site.urls),
 ]
 
 urlpatterns += i18n_patterns(
-    path('admin/', admin.site.urls),
-    path('auth/', include('myauth.urls')),
-    path('', include('weapondetectapp.urls')),
 )
 
 if settings.DEBUG:

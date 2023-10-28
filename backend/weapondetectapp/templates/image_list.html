@@ -2,81 +2,99 @@
 {% load static %}
 {% load i18n %}
 {% block title %}
-  {% translate "You Uploaded Images" %}
+  {% translate "Ваши загруженные изображения" %}
 {% endblock title %}
 {% block body %}
-  {% for image in images %}
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6">
-          <div class="card">
-            <img src="{{ image.image.url }}"
-                 class="card-img-top"
-                 alt="Original Image"
-                 data-toggle="modal"
-                 data-target="#originalModal{{ forloop.counter }}">
-            <div class="card-body">
-              <h5 class="card-title">Original Image</h5>
-              <p class="card-text">Description of the original image.</p>
+  {% if images %}
+    {% for image in images %}
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card">
+              <img src="{{ image.image.url }}"
+                   class="card-img-top"
+                   alt="Original Image"
+                   data-toggle="modal"
+                   data-target="#originalModal{{ forloop.counter }}">
+              <div class="card-body">
+                <h5 class="card-title">Первоначальное изображение</h5>
+                {% comment %} <p class="card-text">Описание</p> {% endcomment %}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            {% for image_predict in images_predict %}
+              {% if image_predict.image_original.pk == image.pk %}
+                <div class="card">
+                  <img src="{{ image_predict.image_predict.url }}"
+                       class="card-img-top"
+                       alt="Processed Image"
+                       data-toggle="modal"
+                       data-target="#processedModal{{ forloop.counter }}">
+                  <div class="card-body">
+                    <h5 class="card-title">Обработанное изображение</h5>
+                    {% comment %} <p class="card-text">{{ image_predict.boxes }}</p> {% endcomment %}
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <!-- Modal for Original Image -->
+      <div class="modal fade"
+           id="originalModal{{ forloop.counter }}"
+           tabindex="-1"
+           role="dialog"
+           aria-labelledby="originalModalLabel{{ forloop.counter }}"
+           aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="originalModalLabel{{ forloop.counter }}">Первоначальное изображение</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <img src="{{ image.image.url }}" class="img-fluid" alt="Original Image">
+              <p class="card-text">Название файла: {{ image.name }}</p>
+              <p class="card-text">Дата и время загрузки: {{ image.uploaded_at }}</p>
             </div>
           </div>
         </div>
-        <div class="col-md-6">
-          <div class="card">
-            <img src="{{ image.image.url }}"
-                 class="card-img-top"
-                 alt="Processed Image"
-                 data-toggle="modal"
-                 data-target="#processedModal{{ forloop.counter }}">
-            <div class="card-body">
-              <h5 class="card-title">Processed Image</h5>
-              <p class="card-text">Description of the processed image.</p>
+      </div>
+      <!-- Modal for Processed Image -->
+      <div class="modal fade"
+           id="processedModal{{ forloop.counter }}"
+           tabindex="-1"
+           role="dialog"
+           aria-labelledby="processedModalLabel{{ forloop.counter }}"
+           aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="processedModalLabel{{ forloop.counter }}">Обработанное изображение</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              {% for image_predict in images_predict %}
+                {% if image_predict.image_original.pk == image.pk %}
+                  <img src="{{ image_predict.image_predict.url }}"
+                       class="img-fluid"
+                       alt="Processed Image">
+                  <p class="card-text">{{ image_predict.boxes }}</p>
+                {% endif %}
+              {% endfor %}
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <!-- Modal for Original Image -->
-    <div class="modal fade"
-         id="originalModal{{ forloop.counter }}"
-         tabindex="-1"
-         role="dialog"
-         aria-labelledby="originalModalLabel{{ forloop.counter }}"
-         aria-hidden="true">
-      <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="originalModalLabel{{ forloop.counter }}">Original Image</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <img src="{{ image.image.url }}" class="img-fluid" alt="Original Image">
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Modal for Processed Image -->
-    <div class="modal fade"
-         id="processedModal{{ forloop.counter }}"
-         tabindex="-1"
-         role="dialog"
-         aria-labelledby="processedModalLabel{{ forloop.counter }}"
-         aria-hidden="true">
-      <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="processedModalLabel{{ forloop.counter }}">Processed Image</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <img src="{{ image.image.url }}" class="img-fluid" alt="Processed Image">
-          </div>
-        </div>
-      </div>
-    </div>
-  {% endfor %}
+      <br>
+    {% endfor %}
+  {% else %}
+    <div>Не загружено ни одного файла</div>
+  {% endif %}
 {% endblock body %}

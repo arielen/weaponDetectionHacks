@@ -1,10 +1,15 @@
 from django.urls import path
 from weapondetectapp.views import (
     ImageListView,
-    FileUploadView,
+    VideoListView,
+    ImageUploadView,
+    VideoUploadView,
 )
 
 urlpatterns = [
     path("", ImageListView.as_view(), name="image-list"),
-    path("upload/", FileUploadView.as_view(), name="upload"),
+    path("image/", ImageListView.as_view(), name="image-list"),
+    path("video/", VideoListView.as_view(), name="video-list"),
+    path("upload_image/", ImageUploadView.as_view(), name="upload-image"),
+    path("upload_video/", VideoUploadView.as_view(), name="upload-video"),
 ]
