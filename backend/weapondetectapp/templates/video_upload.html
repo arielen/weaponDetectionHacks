@@ -2,20 +2,20 @@
 {% load static %}
 {% load i18n %}
 {% block title %}
-  Upload File
+  Upload Video
 {% endblock title %}
 {% block body %}
   <div class="container">
-    <h1>Загрузка изображений</h1>
+    <h1>Загрузка видео</h1>
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="form-group">
-        <label for="image">Выберите изображение</label>
+        <label for="video">Выберите видеофайл(-лы)</label>
         <input type="file"
                class="form-control-file"
-               id="image"
-               name="image"
-               accept="image/*"
+               id="video"
+               name="video"
+               accept="video/*"
                multiple>
       </div>
       <button type="submit" class="btn btn-primary">Загрузить</button>
