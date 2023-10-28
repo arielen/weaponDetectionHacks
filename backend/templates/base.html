@@ -35,10 +35,23 @@
             </li>
             {% if user.is_authenticated %}
               <li class="nav-item">
-                <a class="nav-link" href={% url "upload-image" %}>{% translate "Загрузить изображение" %}</a>
+                <a class="nav-link" href={% url "image-list" %}>{% translate "Изображения" %}</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href={% url "upload-video" %}>{% translate "Загрузить видео" %}</a>
+                <a class="nav-link" href={% url "video-list" %}>{% translate "Видео" %}</a>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle"
+                   href="#"
+                   id="navbarDropdown"
+                   role="button"
+                   data-toggle="dropdown"
+                   aria-haspopup="true"
+                   aria-expanded="false">{% translate "Загрузить" %}</a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <a class="dropdown-item" href={% url "upload-image" %}>{% translate "Загрузить изображение" %}</a>
+                  <a class="dropdown-item" href={% url "upload-video" %}>{% translate "Загрузить видео" %}</a>
+                </div>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href={% url "myauth:logout" %}>{% translate "Выйти" %}</a>

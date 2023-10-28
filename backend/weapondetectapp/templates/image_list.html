@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n %}
 {% block title %}
-  {% translate "You Uploaded Images" %}
+  {% translate "Ваши загруженные изображения" %}
 {% endblock title %}
 {% block body %}
   {% if images %}
@@ -23,17 +23,21 @@
             </div>
           </div>
           <div class="col-md-6">
-            <div class="card">
-              <img src="{{ image.image.url }}"
-                   class="card-img-top"
-                   alt="Processed Image"
-                   data-toggle="modal"
-                   data-target="#processedModal{{ forloop.counter }}">
-              <div class="card-body">
-                <h5 class="card-title">Обработанное изображение</h5>
-                <p class="card-text">Description of the processed image.</p>
-              </div>
-            </div>
+            {% for image_predict in images_predict %}
+              {% if image_predict.image_original.pk == image.pk %}
+                <div class="card">
+                  <img src="{{ image_predict.image_predict.url }}"
+                       class="card-img-top"
+                       alt="Processed Image"
+                       data-toggle="modal"
+                       data-target="#processedModal{{ forloop.counter }}">
+                  <div class="card-body">
+                    <h5 class="card-title">Обработанное изображение</h5>
+                    {% comment %} <p class="card-text">{{ image_predict.boxes }}</p> {% endcomment %}
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
           </div>
         </div>
       </div>
@@ -54,6 +58,8 @@
             </div>
             <div class="modal-body">
               <img src="{{ image.image.url }}" class="img-fluid" alt="Original Image">
+              <p class="card-text">Название файла: {{ image.name }}</p>
+              <p class="card-text">Дата и время загрузки: {{ image.uploaded_at }}</p>
             </div>
           </div>
         </div>
@@ -74,7 +80,14 @@
               </button>
             </div>
             <div class="modal-body">
-              <img src="{{ image.image.url }}" class="img-fluid" alt="Processed Image">
+              {% for image_predict in images_predict %}
+                {% if image_predict.image_original.pk == image.pk %}
+                  <img src="{{ image_predict.image_predict.url }}"
+                       class="img-fluid"
+                       alt="Processed Image">
+                  <p class="card-text">{{ image_predict.boxes }}</p>
+                {% endif %}
+              {% endfor %}
             </div>
           </div>
         </div>

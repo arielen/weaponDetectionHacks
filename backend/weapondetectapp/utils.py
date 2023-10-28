@@ -1,6 +1,9 @@
+import io
 import os
-from typing import List, Dict
+from typing import List, Dict, Generator
 from dataclasses import dataclass, field
+from PIL import Image, ImageDraw, ImageFont
+
 
 from ultralytics import YOLO
 
@@ -22,6 +25,8 @@ class BoxPredict:
 @dataclass
 class ImagePredict:
     """
+    source_predict: Predict source object
+
     path: Path to the image
     name_file: Image name
     cls_names: Dict of classes and their names
@@ -29,30 +34,38 @@ class ImagePredict:
     boxes: List of bounding box objects
     save_dir: Path to the folder where the image with the bounding box will be saved
     """
+    source_predict: object
+
     path: str
     name_file: str
-    cls_names: Dict[int, str]
+    cls_names: Dict[float, str]
 
     boxes: List[BoxPredict] = field(default_factory=list)
     save_dir: str | None = field(default=None)
 
 
 class TerroristDetector:
-    IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png']
+    IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png',]
 
-    def __init__(self) -> None:
-        self.__model = YOLO('/home/poryadok/Projects/DATASET_FINISH/weights/weights/best.pt')
-        self.conf: float = 0.6  # confidence threshold
+    CLASS_NAMES = {
+        0: 'person',
+        1: 'gun',
+        2: 'person'
+    }
 
-        self.save_txt: bool = True  # save labels to *.txt
-        self.save_conf: bool = True  # save confidences in --save-txt labels
-        self.save: bool = True  # save inference images
+    def __init__(self, model_path: str = '/home/arielen/weaponDetectionHacks/backend/weapondetectapp/weights/best.pt') -> None:
+        self.__model = YOLO(model_path)
+        self.conf: float = 0.25  # confidence threshold
 
-        self.augment: bool = True  # augmented inference
+        self.save_txt: bool = False  # save labels to *.txt
+        self.save_conf: bool = False  # save confidences in --save-txt labels
+        self.save: bool = False
+
+        self.augment: bool = False  # augmented inference
 
         self.line_width: int = 2  # bounding box thickness (pixels)
 
-    def predict(self, file_path: str | List[str]) -> List:
+    def __predict(self, file_path: str) -> List:
         """
         Predicts image class and returns prediction info.
 
@@ -72,7 +85,7 @@ class TerroristDetector:
 
                 save_txt=self.save_txt,
                 save_conf=self.save_conf,
-                save=True,
+                save=self.save,
 
                 augment=self.augment,
 
@@ -84,123 +97,168 @@ class TerroristDetector:
             print(f'File cannot be read: {e}')
             return []
 
-    def sort_folder(self, path_with_data: str) -> List:
+    def predict(self, file_path: str) -> ImagePredict:
         """
-        Gets all images from the folder and predicts them.
+        Get information about the image and its bounding box.
 
         Args:
-            path_with_data: Path to the folder with images.
+            file_path: Path to the file.
 
         Returns:
-            List of source predict objects.
+            Image predict object.
         """
-        predict_info = []
-        files = os.listdir(path_with_data)
-        files = [file for file in files if os.path.splitext(
-            file)[1].lower() in self.IMAGE_EXTENSIONS]
-        for file in files:
-            image_path = os.path.join(path_with_data, file)
-            image_info = self.predict(image_path)
-            if image_info:
-                predict_info.append(image_info)
+        source_predict = self.__predict(file_path)
 
-        return predict_info
+        object_ = source_predict[0]
 
-    def convert_to_predict_objects(self, source_predict_list: List) -> List[ImagePredict]:
-        """
-        Gets prediction objects from source predict objects.
+        # Get attributes from source predict object
+        path = object_.path
+        name_file = os.path.basename(path)
+        cls_names = object_.names
 
-        Args:
-            source_predict_list: List of source predict objects.
+        imagePredict = ImagePredict(
+            source_predict=object_,
+            path=path,
+            name_file=name_file,
+            cls_names=cls_names,
+        )
 
-        Returns:
-            List of ImagePredict objects.
-        """
+        # Get information about saving the image with the bounding box if it is available
+        if hasattr(object_, 'save_dir'):
+            imagePredict.save_dir = object_.save_dir
 
-        imagePredict_objects: List[ImagePredict] = []
-        # Iterate all source predict objects
-        for source_predict in source_predict_list:
-            object = source_predict[0]
+        # Creatint bounding box objects
+        boxes = object_.boxes
+        box_objects: List[BoxPredict] = []
+        for box in boxes:
+            try:
+                # Get attributes from bounding box object
+                cls = box.cls.item()
+                conf = box.conf.item()
+                xyxy = box.xyxy.tolist()[0]
 
-            # Get attributes from source predict object
-            path = object.path
-            name_file = os.path.basename(path)
-            cls_names = object.names
-
-            imagePredict = ImagePredict(
-                path=path,
-                name_file=name_file,
-                cls_names=cls_names,
-            )
-
-            # Get information about saving the image with the bounding box if it is available
-            if hasattr(object, 'save_dir'):
-                imagePredict.save_dir = object.save_dir
-
-            # Creatint bounding box objects
-            boxes = object.boxes
-            box_objects: List[BoxPredict] = []
-            for box in boxes:
-                try:
-                    # Get attributes from bounding box object
-                    cls = box.cls.item()
-                    conf = box.conf.item()
-                    xyxy = box.xyxy.tolist()[0]
-
-                    box_objects.append(
-                        BoxPredict(
-                            cls=cls,
-                            conf=conf,
-                            xyxy=xyxy
-                        )
+                box_objects.append(
+                    BoxPredict(
+                        cls=cls,
+                        conf=conf,
+                        xyxy=xyxy
                     )
-                except Exception as e:
-                    print(e)
+                )
+            except Exception as e:
+                print(e)
 
-            imagePredict.boxes = box_objects
-            imagePredict_objects.append(imagePredict)
+        imagePredict.boxes = box_objects
+        return imagePredict
 
-        return imagePredict_objects
-
-    def predict_folder(self, path_with_data: str) -> List[ImagePredict]:
+    def predict_folder_with_images(self, path_with_data: str) -> Generator[ImagePredict, None, None]:
         """
-        Predicts all images from the folder and returns prediction objects.
+        Predicts classes for all images in a folder.
 
         Args:
-            path_with_data: Path to the folder with images.
+            path_with_data: Path to a folder with images.
 
         Returns:
-            List of ImagePredict objects.
+            List of predict source objects or empty list if the folder is empty.
+
+        Raises:
+            Exception: If the folder is empty.
         """
 
-        source_predict_list = self.sort_folder(path_with_data)
-        imagePredict_objects = self.convert_to_predict_objects(
-            source_predict_list)
-        return imagePredict_objects
+        file_list = os.listdir(path_with_data)
+        image_list = [file for file in file_list if os.path.splitext(
+            file)[1].lower() in self.IMAGE_EXTENSIONS]
+
+        if len(image_list) == 0:
+            raise Exception('Folder is empty')
+
+        for image in image_list:
+            image_path = os.path.join(path_with_data, image)
+            yield self.predict(image_path)
+
+    def draw_bounding_box(self, image_predict: ImagePredict) -> io.BytesIO:
+        """
+        Get image with bounding box and label in byte stream.
+
+        Args:
+            image_predict: Image predict object.
+
+        Returns:
+            Image with bounding box and label in byte stream.
+        """
+        # Open the image
+        with Image.open(image_predict.path) as img:
+            # Create a drawing context
+            draw = ImageDraw.Draw(img)
+
+            # Draw each bounding box
+            for box in image_predict.boxes:
+
+                if box.cls == 0:
+                    color_box = 'purple'
+
+                elif box.cls == 1:
+                    color_box = 'red'
+
+                elif box.cls == 2:
+                    color_box = 'green'
+
+                else:
+                    color_box = 'white'
+
+                # Extract the coordinates
+                x1, y1, x2, y2 = box.xyxy
+
+                # Draw the box
+                draw.rectangle((x1, y1, x2, y2),
+                               outline=color_box, width=self.line_width)
+
+                # Label the box
+                text = f'{image_predict.cls_names[box.cls]} {box.conf:.2f}'
+                text = text[:1].upper() + text[1:]
+                x_text = x1 + self.line_width
+                y_text = y1 + self.line_width
+
+                draw.text(
+                    (x_text, y_text), text, fill=color_box, width=self.line_width*2,
+                    font=ImageFont.truetype("/home/arielen/weaponDetectionHacks/backend/weapondetectapp/weights/arial.ttf", 20), fill_opacity=1,
+                )
+
+            # Save the image to a byte stream
+            buffer = io.BytesIO()
+            img.save(buffer, format='JPEG')
+            buffer.seek(0)
+
+            return buffer
+
+    def save_image_from_buffer(self, buffer: io.BytesIO, path_to_save: str) -> None:
+        """
+        Save image from byte stream.
+
+        Args:
+            buffer: Image in byte stream.
+            path_to_save: Path to save the image.
+        """
+        with open(path_to_save, 'wb') as f:
+            f.write(buffer.read())
+
+    def predict_and_draw_boxes_on_existing_image(self, path_to_image: str) -> None:
+        """
+        Draw bounding boxes on existing image.
+
+        Args:
+            path_to_image: Path to the image.
+        """
+        image_predict = self.predict(path_to_image)
+        buffer = self.draw_bounding_box(image_predict)
+        self.save_image_from_buffer(buffer, path_to_image)
 
 
-def main():
-    model = TerroristDetector()
+model = TerroristDetector()
 
-    # Set parameters
-    model.conf = 0.6
-    model.save_txt = True
-    model.save_conf = True
-    model.save = True
-    model.augment = True
-    model.line_width = 2
+# Set parameters
+model.save_txt = False
+model.save_conf = False
+model.save = False
 
-    list_predict = model.predict_folder(
-        '/home/poryadok/Projects/DATASET_FINISH/5_00_DROBOVIKI/')
-
-    for predict in list_predict:
-        print(predict.path)
-        print(predict.name_file)
-        print(predict.cls_names)
-        print(predict.save_dir)
-        print(predict.boxes)
-        print('\n')
-
-
-if __name__ == "__main__":
-    main()
+model.conf = 0.6
+model.augment = True

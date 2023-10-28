@@ -7,14 +7,12 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from PIL import Image as PILImage
-
 from weapondetectapp.models import Image, Video, ImagePredict
-# from weapondetectapp.utils import TerroristDetector
+from weapondetectapp.utils import TerroristDetector
 
 
 class ImageListView(LoginRequiredMixin, ListView):
-    model = Image, Video
+    model = Image, ImagePredict
     template_name = "image_list.html"
     context_object_name = "images"
 
@@ -26,10 +24,33 @@ class ImageListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["user"] = self.request.user
+        context["images_predict"] = ImagePredict.objects.filter(
+            image_original__in=self.get_queryset()).order_by("-pk")
         return context
 
     def get_success_url(self):
         return reverse_lazy("image-list")
+
+
+class VideoListView(LoginRequiredMixin, ListView):
+    model = Video
+    template_name = "video_list.html"
+    context_object_name = "videos"
+
+    def get_queryset(self):
+        return Video.objects\
+            .filter(user=self.request.user)\
+            .order_by("-uploaded_at")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["user"] = self.request.user
+        # context["videos_predict"] = Video.objects.filter(
+        #     image_original__in=self.get_queryset()).order_by("-pk")
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy("video-list")
 
 
 class ImageUploadView(LoginRequiredMixin, CreateView):
@@ -47,7 +68,7 @@ class ImageUploadView(LoginRequiredMixin, CreateView):
             for image in images
             if image.name != form.instance.image.name
         ]
-        saved_images = Image.objects.bulk_create(image_objects)
+        Image.objects.bulk_create(image_objects)
 
         first_file_img_name = form.instance.image.name
 
@@ -66,18 +87,42 @@ class ImageUploadView(LoginRequiredMixin, CreateView):
                 "uploads",
                 f"{image.get_path()}"
             )
+            with open(abs_path, 'rb') as f:
+                content_file = ContentFile(f.read())
+                cur_image_predict = ImagePredict(
+                    image_original=image,
+                    boxes=[],
+                )
+                cur_image_predict.image_predict.save(
+                    f"{image.name}",
+                    content_file
+                )
+                cur_image_predict.save()
 
-            image_file = PILImage.open(abs_path)
-            content_file = ContentFile(image_file.tobytes())
-            cur_image_predict = ImagePredict(
-                image_original=image,
-                boxes=[],
+            # Отправляем путь изображения в обработчик
+            print(cur_image_predict.image_predict)
+
+            t_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "uploads",
+                f"{cur_image_predict.image_predict}"
             )
-            cur_image_predict.image_predict.save(
-                f"{image.name}",
-                content_file
+
+            print(t_path)
+
+            t = TerroristDetector()
+            t.predict_and_draw_boxes_on_existing_image(
+                t_path
             )
-            cur_image_predict.save()
+
+            # image_path = os.path.join(
+            #     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            #     "uploads",
+            #     f"{cur_image_predict.image_predict}"
+            # )
+            # with PILImage.open(image_path) as img:
+            #     img.thumbnail((500, 500))
+            #     img.save(image_path)
 
         return form
 

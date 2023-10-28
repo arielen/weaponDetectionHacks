@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+  {% translate "Ваши загруженные видео" %}
+{% endblock title %}
+{% block body %}
+  {% if videos %}
+    {% for video in videos %}
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <video controls>
+              <source src="{{ video.video.url }}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <div class="col-md-6">
+            <video controls>
+              <source src="{{ video.video.url }}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div>Не загружено ни одного файла</div>
+  {% endif %}
+{% endblock body %}
