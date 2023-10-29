@@ -74,4 +74,21 @@ python manage.py runserver
 6) После завершения работы модели Вам будет показаны изображения с найденными эллементами и подпись к ним.
 
 ## ДЕМО
-Записи примера работы с сервисом
+
+#### Авторизация
+
+<table>
+    <tr>
+        <td><img src="images/image_login" height="220"></td>
+        <td><img src="images/image_register" height="220"></td>
+    </tr>
+</table>
+
+#### Загрузка изображений и результаты работы
+
+<table>
+    <tr>
+        <td><img src="images/image_uploadImages" ></td>
+        <td><img src="images/image_predictImages"></td>
+    </tr>
+</table>
