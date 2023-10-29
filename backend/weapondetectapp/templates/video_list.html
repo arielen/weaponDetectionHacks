@@ -10,21 +10,35 @@
       <div class="container">
         <div class="row">
           <div class="col-md-6">
-            <video controls>
+            <h5>Оригинальное видео</h5>
+            <video class="col-md-6" controls>
               <source src="{{ video.video.url }}" type="video/mp4">
-              Your browser does not support the video tag.
+              Ваш браузер не поддерживает данный видеоплеер
             </video>
           </div>
-          <div class="col-md-6">
-            <video controls>
-              <source src="{{ video.video.url }}" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-          </div>
+          {% for video_predict in videos_predict %}
+            {% if video_predict.video_original.pk == video.pk %}
+              <div class="col-md-6">
+                <h5>Обработанное видео</h5>
+                <video class="col-md-6" controls>
+                  <source src="{{ video.video.url }}" type="video/mp4">
+                  Ваш браузер не поддерживает данный видеоплеер
+                </video>
+              </div>
+            {% endif %}
+          {% endfor %}
         </div>
       </div>
     {% endfor %}
   {% else %}
-    <div>Не загружено ни одного файла</div>
+    <div class="container">
+      <div class="d-grid">Не загружено ни одного видео-файла</div>
+      <br />
+      <div class="d-grid">
+        <a href={% url "upload-video" %}>
+          <button type="submit" class="btn btn-primary">Загрузить сейчас</button>
+        </a>
+      </div>
+    </div>
   {% endif %}
 {% endblock body %}
