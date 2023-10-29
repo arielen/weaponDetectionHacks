@@ -54,7 +54,7 @@ class TerroristDetector:
         2: 'person'
     }
 
-    def __init__(self, model_path: str = '/home/arielen/weaponDetectionHacks/backend/weapondetectapp/weights/best.pt') -> None:
+    def __init__(self, model_path: str = 'weapondetectapp/weights/best.pt') -> None:
         self.__model = YOLO(model_path)
         self.conf: float = 0.25  # confidence threshold
 
@@ -228,7 +228,7 @@ class TerroristDetector:
 
                 draw.text(
                     (x_text, y_text), text, fill=color_box, width=self.line_width*2,
-                    font=ImageFont.truetype("/home/arielen/weaponDetectionHacks/backend/weapondetectapp/weights/arial.ttf", 20), fill_opacity=1,
+                    font=ImageFont.truetype("weapondetectapp/weights/arial.ttf", 20), fill_opacity=1,
                 )
 
             # Save the image to a byte stream
