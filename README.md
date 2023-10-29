@@ -43,19 +43,26 @@ docker run -p 8000:8000 my-django-app
 
 Для запуска проект так же **необходимо**:
 1) Иметь Python версии 3.6 и выше на компьютере
-2) Установить библиотеки из списка в файле `"requirements.txt"` с помощью **pip**
+2) Иметь установленный и запущенный `redis` 
+```
+sudo apt-get install redis
+
+redis-server --daemonize yes
+```
+
+3) Установить библиотеки из списка в файле `"requirements.txt"` с помощью **pip**
 ```commandline
 pip install -r requirements.txt
 ```
-3) В директории с проектом зайти в **`backend`**
-4) Открыть терминал в этой папке
-5) Ввести команды: 
+4) В директории с проектом зайти в **`backend`**
+5) Открыть терминал в этой папке
+6) Ввести команды: 
 ```commandline
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
 ```
-6) Открыть браузер и перейти по адресу http://127.0.0.1:8000/
+7) Открыть браузер и перейти по адресу http://127.0.0.1:8000/
 
 ## РАБОТА
 1) Зарегистрируйте пользователя и войдите в систему
