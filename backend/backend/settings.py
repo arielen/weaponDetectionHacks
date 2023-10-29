@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from tkinter import W
 
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -29,6 +31,16 @@ SECRET_KEY = 'django-insecure-_!5r88x7*ip&^m4jcsa0is6&n_$2c#6l^c7tlm9eweqjposvja
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = ['*']
+# Get csrf token from .env file
+if os.path.exists(BASE_DIR / '.env'):
+    with open(BASE_DIR / '.env') as f:
+        lines = f.readlines()
+        for line in lines:
+            if line.startswith('CSRF_TOKEN'):
+                CSRF_TOKEN = line.split('=')[1].strip()
+                break
 
 
 # Application definition
