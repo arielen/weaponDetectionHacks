@@ -40,6 +40,7 @@ if os.path.exists(BASE_DIR / '.env'):
         for line in lines:
             if line.startswith('CSRF_TOKEN'):
                 CSRF_TOKEN = line.split('=')[1].strip()
+                CSRF_TRUSTED_ORIGINS.append(CSRF_TOKEN)
                 break
 
 
