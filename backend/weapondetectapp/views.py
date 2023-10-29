@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 from weapondetectapp.models import Image, Video, ImagePredict, VideoPredict
 from weapondetectapp.utils import TerroristDetector
-
+from weapondetectapp.tasks import process_predict_video
 
 class ImageListView(LoginRequiredMixin, ListView):
     model = Image, ImagePredict
@@ -173,7 +173,9 @@ class VideoUploadView(LoginRequiredMixin, CreateView):
             )
             print(t_path)
             t = TerroristDetector()
-            t.predict_video_and_draw_boxes_on_existing_video(
-                t_path
-            )
+            # t.predict_video_and_draw_boxes_on_existing_video(
+            #     t_path
+            # )
+            process_predict_video.delay(t_path)
+
         return form
