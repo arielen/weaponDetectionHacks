@@ -1,9 +1,10 @@
 import io
 import os
+import cv2
+import numpy as np
 from typing import List, Dict, Generator
 from dataclasses import dataclass, field
 from PIL import Image, ImageDraw, ImageFont
-
 
 from ultralytics import YOLO
 
@@ -185,8 +186,15 @@ class TerroristDetector:
         Returns:
             Image with bounding box and label in byte stream.
         """
+        try:
+            image = Image.open(image_predict.path)
+        except:
+            image_array: np.ndarray = image_predict.source_predict.orig_img
+            image = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
+            image = Image.fromarray(image)
+
         # Open the image
-        with Image.open(image_predict.path) as img:
+        with image as img:
             # Create a drawing context
             draw = ImageDraw.Draw(img)
 
@@ -252,13 +260,70 @@ class TerroristDetector:
         buffer = self.draw_bounding_box(image_predict)
         self.save_image_from_buffer(buffer, path_to_image)
 
+    def predict_video_and_draw_boxes_on_existing_video(self, path_to_video: str) -> None:
+        """
+        Draw bounding boxes on existing video and save.
 
-model = TerroristDetector()
+        Args:
+            path_to_video: Path to the video.
+        """
 
-# Set parameters
-model.save_txt = False
-model.save_conf = False
-model.save = False
+        new_name = os.path.basename(path_to_video)
+        video_path = os.path.join(os.path.dirname(
+            path_to_video), f'new_{new_name}')
 
-model.conf = 0.6
-model.augment = True
+        # Create a video capture object
+        cap = cv2.VideoCapture(path_to_video)
+
+        # Get the video's frame rate
+        fps = cap.get(cv2.CAP_PROP_FPS)
+
+        # Get the video's frame size
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+        # Create a video writer object
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
+
+        num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        # Read the video
+        while cap.isOpened():
+            ret, frame = cap.read()
+
+            if not ret:
+                break
+
+            # Convert the frame to RGB
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Convert the frame to Image
+            frame = Image.fromarray(frame)
+
+            # Predict the classes
+            frame_predict = self.predict(frame)
+
+            # Draw the bounding boxes
+            buffer = self.draw_bounding_box(frame_predict)
+
+            # Convert the byte stream to Image
+            buffer = Image.open(buffer)
+
+            src = np.array(buffer)
+
+            # Convert the frame back to OpenCV format
+            frame = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
+
+            # Write the frame to the output video file
+            out.write(frame)
+
+            num_frames -= 1
+
+        # Release the video capture and writer objects
+        cap.release()
+        out.release()
+
+        # Delete the original video and rename the new one
+        os.remove(path_to_video)
+        os.rename(video_path, path_to_video)

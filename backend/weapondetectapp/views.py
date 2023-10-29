@@ -48,6 +48,8 @@ class VideoListView(LoginRequiredMixin, ListView):
         context["user"] = self.request.user
         context["videos_predict"] = VideoPredict.objects.filter(
             video_original__in=self.get_queryset()).order_by("-pk")
+        for i in context["videos_predict"]:
+            print(i.video_predict)
         return context
 
     def get_success_url(self):
@@ -164,14 +166,14 @@ class VideoUploadView(LoginRequiredMixin, CreateView):
                 cur_video_predict.save()
 
             # Отправляем путь видео в обработчик
-            # t_path = os.path.join(
-            #     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            #     "uploads",
-            #     f"{cur_image_predict.image_predict}"
-            # )
-            # print(t_path)
-            # t = TerroristDetector()
-            # t.predict_and_draw_boxes_on_existing_image(
-            #     t_path
-            # )
+            t_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "uploads",
+                f"{cur_video_predict.video_predict}"
+            )
+            print(t_path)
+            t = TerroristDetector()
+            t.predict_video_and_draw_boxes_on_existing_video(
+                t_path
+            )
         return form
