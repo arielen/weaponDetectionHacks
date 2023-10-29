@@ -95,6 +95,14 @@
       <br>
     {% endfor %}
   {% else %}
-    <div>Не загружено ни одного файла</div>
+    <div class="container">
+      <div class="d-grid">Не загружено ни одного изображения</div>
+      <br />
+      <div class="d-grid">
+        <a href={% url "upload-image" %}>
+          <button type="submit" class="btn btn-primary">Загрузить сейчас</button>
+        </a>
+      </div>
+    </div>
   {% endif %}
 {% endblock body %}
